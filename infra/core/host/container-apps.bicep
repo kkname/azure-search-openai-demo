@@ -13,6 +13,7 @@ param virtualNetworkSubnetId string = ''
 @allowed(['Consumption', 'D4', 'D8', 'D16', 'D32', 'E4', 'E8', 'E16', 'E32', 'NC24-A100', 'NC48-A100', 'NC96-A100'])
 param workloadProfile string
 
+
 var workloadProfiles = workloadProfile == 'Consumption'
   ? [
       {
@@ -22,10 +23,11 @@ var workloadProfiles = workloadProfile == 'Consumption'
     ]
   : [
       {
-        minimumCount: 0
-        maximumCount: 2
+        minimumCount: 1
+        maximumCount: 3
         name: workloadProfile
         workloadProfileType: workloadProfile
+        type: 'K8SCPUCores'
       }
     ]
 
