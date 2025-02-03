@@ -81,10 +81,6 @@ param targetPort int = 80
 
 param workloadProfile string = 'Consumption'
 
-resource userIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = if (!empty(identityName)) {
-  name: identityName
-}
-
 // Private registry support requires both an ACR name and a User Assigned managed identity
 var usePrivateRegistry = !empty(identityName) && !empty(containerRegistryName)
 
@@ -102,6 +98,14 @@ var keyvaultIdentitySecrets = [for secret in items(keyvaultIdentities): {
   identity: secret.value.identity
 }]
 
+resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' existing = {
+  name: containerAppsEnvironmentName
+}
+
+resource userIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = if (!empty(identityName)) {
+  name: identityName
+}
+
 module containerRegistryAccess '../security/registry-access.bicep' = if (usePrivateRegistry) {
   name: '${deployment().name}-registry-access'
   params: {
@@ -118,13 +122,14 @@ resource app 'Microsoft.App/containerApps@2023-05-02-preview' = {
   // otherwise the container app will throw a provision error
   // This also forces us to use an user assigned managed identity since there would no way to
   // provide the system assigned identity with the ACR pull access before the app is created
-  dependsOn: usePrivateRegistry ? [ containerRegistryAccess ] : []
+  dependsOn: usePrivateRegistry ? [ containerRegistryAccess, containerAppsEnvironment ] : [ containerAppsEnvironment ]
   identity: {
     type: normalizedIdentityType
     userAssignedIdentities: !empty(identityName) && normalizedIdentityType == 'UserAssigned' ? { '${userIdentity.id}': {} } : null
   }
   properties: {
-    managedEnvironmentId: containerAppsEnvironment.id
+    // managedEnvironmentId: containerAppsEnvironment.id
+    managedEnvironmentId: resourceId('Microsoft.App/managedEnvironments', containerAppsEnvironmentName)
     workloadProfileName: workloadProfile
     configuration: {
       activeRevisionsMode: revisionMode
@@ -172,9 +177,9 @@ resource app 'Microsoft.App/containerApps@2023-05-02-preview' = {
   }
 }
 
-resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' existing = {
-  name: containerAppsEnvironmentName
-}
+// resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' existing = {
+//   name: containerAppsEnvironmentName
+// }
 
 output defaultDomain string = containerAppsEnvironment.properties.defaultDomain
 output identityPrincipalId string = normalizedIdentityType == 'None' ? '' : (empty(identityName) ? app.identity.principalId : userIdentity.properties.principalId)

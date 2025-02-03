@@ -137,7 +137,7 @@
     "gpt4vDeploymentName": {
       "value": "${AZURE_OPENAI_GPT4V_DEPLOYMENT}"
     },
-    "gpt4vDeploymentVersion":{
+    "gpt4vModelVersion":{
       "value": "${AZURE_OPENAI_GPT4V_DEPLOYMENT_VERSION}"
     },
     "gpt4vDeploymentSkuName":{
