@@ -22,10 +22,6 @@ var workloadProfiles = workloadProfile == 'Consumption'
     ]
   : [
       {
-        name: 'Consumption'
-        workloadProfileType: 'Consumption'
-      }
-      {
         minimumCount: 0
         maximumCount: 2
         name: workloadProfile
