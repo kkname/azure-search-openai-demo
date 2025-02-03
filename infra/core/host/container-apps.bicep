@@ -24,7 +24,7 @@ var workloadProfiles = workloadProfile == 'Consumption'
   : [
       {
         minimumCount: 0
-        maximumCount: 1
+        maximumCount: 2
         name: workloadProfile
         workloadProfileType: workloadProfile
         type: 'K8SCPUCores'
